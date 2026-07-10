@@ -24,17 +24,17 @@ To fully utilize GPU compute resources, we need to overlap CUDA Core operations 
 
 Our solution involves an additional mathematical transformation beyond FlashAttention's online softmax and accumulation approach. In each step, we take two KV blocks (called $K_0$, $K_1$, $V_0$, and $V_1$). Since the output matrix occupies 32,768 registers (too many for one warpgroup), we split it vertically into $O_L$ and $O_R$ (each $64 \times 256$). We similarly split $V_0$ and $V_1$ into $V_{0L}$, $V_{0R}$, $V_{1L}$, and $V_{1R}$ (each $64 \times 256$). The output matrix is then computed as follows:
 
-0. Maintain a running max $m$ (initialized to $-\infty$, shared between the two warpgroups) and output matrices $\vec o_L, \vec o_R$ (initialized to 0).
+0. Maintain a running max $m$ (initialized to $-\infty$, shared between the two warpgroups) and output matrices $\vec o_L$ and $\vec o_R$ (initialized to 0).
 1. [0] Compute
 
 $$
-\vec p_0 = \vec q K_0^\intercal / qk_{scale}
+\vec p_0 = \vec q K_0^\intercal / qk_{\text{scale}}
 $$
 
 2. [1] Compute
 
 $$
-\vec p_1 = \vec q K_1^\intercal / qk_{scale}
+\vec p_1 = \vec q K_1^\intercal / qk_{\text{scale}}
 $$
 
 3. [0] Compute and update $m$
@@ -42,16 +42,16 @@ $$
 $$
 \begin{aligned}
 mp_0 &= \max(\vec p_0), \\
-m_{new_0} &= \max(m, mp_0), \\
-scale_0 &= \exp(m_{new_0} - m), \\
-m &\gets m_{new_0}.
+m_{\text{new}_0} &= \max(m, mp_0), \\
+scale_0 &= \exp(m_{\text{new}_0} - m), \\
+m &\gets m_{\text{new}_0}.
 \end{aligned}
 $$
 
 4. [0] Perform softmax on $\vec p_0$
 
 $$
-\vec p_0 \gets \exp(\vec p_0 - m_{new_0})
+\vec p_0 \gets \exp(\vec p_0 - m_{\text{new}_0})
 $$
 
 5. [0] Update $\vec o_L$
@@ -65,16 +65,16 @@ $$
 $$
 \begin{aligned}
 mp_1 &= \max(\vec p_1), \\
-m_{new_1} &= \max(m, mp_1), \\
-scale_1 &= \exp(m_{new_1} - m), \\
-m &\gets m_{new_1}.
+m_{\text{new}_1} &= \max(m, mp_1), \\
+scale_1 &= \exp(m_{\text{new}_1} - m), \\
+m &\gets m_{\text{new}_1}.
 \end{aligned}
 $$
 
 7. [1] Perform softmax on $\vec p_1$
 
 $$
-\vec p_1 \gets \exp(\vec p_1 - m_{new_1})
+\vec p_1 \gets \exp(\vec p_1 - m_{\text{new}_1})
 $$
 
 8. [1] Update $\vec o_R$
