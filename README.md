@@ -4,12 +4,10 @@
 
 FlashMLA is DeepSeek's library of optimized attention kernels, powering the [DeepSeek-V3](https://github.com/deepseek-ai/DeepSeek-V3) model. This repository contains the following implementations:
 
-- Dense attention for the prefill stage
 - Dense attention for the decoding stage
 
 ## News
 
-- **2025.08.01 Kernels for MHA on SM100**: Thanks to [NVIDIA's PR](https://github.com/deepseek-ai/FlashMLA/pull/76) for MHA forward / backward kernels on SM100!
 - **2025.04.22 Deep-Dive Blog**: We'd love to share the technical details behind the new FlashMLA kernel! Check out our deep-dive write-up [here](docs/20250422-new-kernel-deep-dive.md).
 - **2025.04.22 Performance Update**: We're excited to announce the new release of Flash MLA, which delivers 5% ~ 15% performance improvement for compute-bound workloads, achieving up to 660 TFlops on NVIDIA H800 SXM5 GPUs. The interface of the new version is fully compatible with the old one. Simply upgrade to the new version for an immediate performance boost! 🚀🚀🚀
 
@@ -23,18 +21,10 @@ python tests/test_flash_mla_dense_decoding.py
 
 The dense MLA decoding kernel achieves up to 3000 GB/s in memory-bound configuration and 660 TFLOPS in computation-bound configuration on H800 SXM5 with CUDA 12.8.
 
-#### Test & benchmark MHA prefill (Dense):
-
-```bash
-python tests/test_fmha_sm100.py
-```
-
-It achieves up to 1460 TFlops in forward and 1000 TFlops in backward computation on B200, as reported by NVIDIA.
-
 ## Requirements
 
-- SM90 / SM100 (See the support matrix below)
-- CUDA 12.8 and above (CUDA 12.9+ is required for SM100 kernels)
+- SM90 (See the support matrix below)
+- CUDA 12.8 and above
 - PyTorch 2.0 and above
 
 Support matrix:
@@ -42,9 +32,8 @@ Support matrix:
 | Kernel | GPU Architecture | MLA Mode [1] | KVCache Format |
 | :---: | :---: | :---: | :---: |
 | Dense Decoding | SM90 | MQA | BF16 |
-| Dense Prefill | SM100 | MHA |  |
 
-[1]: Here "MLA Mode" refers to the mode used for MLA calculation. MQA stands for Multi-Query Attention mode (i.e. `head_dim_k` =  576 with `head_dim_v` = 512), while MHA stands for Multi-Head Attention mode (i.e. `head_dim_k` = 192 / 128 with `head_dim_v` = 128).
+[1]: Here "MLA Mode" refers to the mode used for MLA calculation. MQA stands for Multi-Query Attention mode (i.e. `head_dim_k` =  576 with `head_dim_v` = 512).
 
 ## Installation
 
@@ -92,15 +81,6 @@ The kernel returns `(out, lse)`, where:
 -   `lse` is the log-sum-exp value of the attention scores for each query head.
 
 See `tests/test_flash_mla_dense_decoding.py` for a complete example.
-
-### Dense MHA Prefill
-
-This kernel implements the standard dense Multi-Head Attention (MHA) forward and backward operations. It can be called using:
--   `flash_attn_varlen_func`
--   `flash_attn_varlen_qkvpacked_func`
--   `flash_attn_varlen_kvpacked_func`
-
-The usage is similar to the `flash_attn` package. See `tests/test_fmha_sm100.py` for a complete example.
 
 ## Acknowledgement
 

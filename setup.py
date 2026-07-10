@@ -33,14 +33,9 @@ def get_arch_flags():
     major, minor = map(int, nvcc_version_number.split('.'))
     print(f'Compiling using NVCC {major}.{minor}')
 
-    DISABLE_SM100 = is_flag_set("FLASH_MLA_DISABLE_SM100")
     DISABLE_SM90 = is_flag_set("FLASH_MLA_DISABLE_SM90")
-    if major < 12 or (major == 12 and minor <= 8):
-        assert DISABLE_SM100, "sm100 compilation for Flash MLA requires NVCC 12.9 or higher. Please set FLASH_MLA_DISABLE_SM100=1 to disable sm100 compilation, or update your environment."    # TODO Implement this
 
     arch_flags = []
-    if not DISABLE_SM100:
-        arch_flags.extend(["-gencode", "arch=compute_100f,code=sm_100f"])
     if not DISABLE_SM90:
         arch_flags.extend(["-gencode", "arch=compute_90a,code=sm_90a"])
     return arch_flags
@@ -73,10 +68,6 @@ ext_modules.append(
             # sm90 dense decode
             "csrc/sm90/decode/dense/instantiations/fp16.cu",
             "csrc/sm90/decode/dense/instantiations/bf16.cu",
-
-            # sm100 dense prefill & backward
-            "csrc/sm100/prefill/dense/fmha_cutlass_fwd_sm100.cu",
-            "csrc/sm100/prefill/dense/fmha_cutlass_bwd_sm100.cu",
         ],
         extra_compile_args={
             "cxx": cxx_args + get_features_args(),
