@@ -43,7 +43,7 @@ $$
 \begin{aligned}
 mp_0 &= \max(\vec p_0), \\
 m_{\text{new}_0} &= \max(m, mp_0), \\
-scale_0 &= \exp(m_{\text{new}_0} - m), \\
+\text{scale}_0 &= \exp(m_{\text{new}_0} - m), \\
 m &\gets m_{\text{new}_0}.
 \end{aligned}
 $$
@@ -57,7 +57,7 @@ $$
 5. [0] Update $\vec o_L$
 
 $$
-\vec o_L \gets \vec o_L \cdot scale_0 + \vec p_0 V_{0L}
+\vec o_L \gets \vec o_L \cdot \text{scale}_0 + \vec p_0 V_{0L}
 $$
 
 6. [1] Compute and update $m$
@@ -66,7 +66,7 @@ $$
 \begin{aligned}
 mp_1 &= \max(\vec p_1), \\
 m_{\text{new}_1} &= \max(m, mp_1), \\
-scale_1 &= \exp(m_{\text{new}_1} - m), \\
+\text{scale}_1 &= \exp(m_{\text{new}_1} - m), \\
 m &\gets m_{\text{new}_1}.
 \end{aligned}
 $$
@@ -80,13 +80,13 @@ $$
 8. [1] Update $\vec o_R$
 
 $$
-\vec o_R \gets \vec o_R \cdot (scale_0 \cdot scale_1) + \vec p_1 V_{1R}
+\vec o_R \gets \vec o_R \cdot (\text{scale}_0 \cdot \text{scale}_1) + \vec p_1 V_{1R}
 $$
 
 9. [0] Update $\vec p_0$
 
 $$
-\vec p_0 \gets \vec p_0 \cdot scale_1
+\vec p_0 \gets \vec p_0 \cdot \text{scale}_1
 $$
 
 10. [1] Update $\vec o_R$
@@ -98,7 +98,7 @@ $$
 11. [0] Update $\vec o_L$
 
 $$
-\vec o_L \gets \vec o_L \cdot scale_1 + \vec p_1 V_{1L}
+\vec o_L \gets \vec o_L \cdot \text{scale}_1 + \vec p_1 V_{1L}
 $$
 
 Note: We assume one q head for simplicity, so $\vec q$ and $\vec o$ are vectors. Bracketed numbers indicate the warpgroup performing the operation. Assume $\vec o_L$ resides in warpgroup 0's register and $\vec o_R$ resides in warpgroup 1's register.
