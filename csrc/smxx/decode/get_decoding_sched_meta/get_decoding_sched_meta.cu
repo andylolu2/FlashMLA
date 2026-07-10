@@ -27,19 +27,7 @@ get_mla_metadata_kernel(__grid_constant__ const GetDecodeSchedMetaParams params)
 
     int total_num_blocks = 0;
     for (int i = threadIdx.x; i < batch_size; i += 32) {
-        int cur_s_k;
-        if (params.topk == -1) {
-            // Dense model, cur_s_k = actual s_k
-            cur_s_k = __ldg(seqlens_k_ptr + i);
-        } else {
-            // Sparse model, cur_s_k = topk (+ extra topk)
-            cur_s_k = params.topk_length ? __ldg(params.topk_length + i) : params.topk;
-            if (cur_s_k == 0) cur_s_k = 1;  // Ensure the main loop will never be empty
-            if (params.extra_topk) {
-                cur_s_k = ku::ceil(cur_s_k, block_size_n);
-                cur_s_k += params.extra_topk_length ? __ldg(params.extra_topk_length + i) : params.extra_topk;
-            }
-        }
+        int cur_s_k = __ldg(seqlens_k_ptr + i);
         seqlens_k_shared[i] = cur_s_k;
         int first_token_idx = 0;
         int last_token_idx = max(cur_s_k-1, 0);

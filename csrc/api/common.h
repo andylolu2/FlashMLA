@@ -85,19 +85,6 @@ inline int int64_stride_to_int(int64_t orig_stride) {
         } \
     } ();
 
-#define DISPATCH_MODEL_TYPE(MODEL_TYPE, CONSTEXPR_NAME, ...) \
-[&] () { \
-    if (MODEL_TYPE == ModelType::V32) { \
-        static constexpr ModelType CONSTEXPR_NAME = ModelType::V32; \
-        return __VA_ARGS__(); \
-    } else if (MODEL_TYPE == ModelType::MODEL1) { \
-        static constexpr ModelType CONSTEXPR_NAME = ModelType::MODEL1; \
-        return __VA_ARGS__(); \
-    } else { \
-        TORCH_CHECK(false, "Unsupported model type: ", (int)MODEL_TYPE); \
-    } \
-} ();
-
 // The following code is adapted from https://ykiko.me/en/articles/680412313/, which converts enum values to string names.
 template<auto value>
 constexpr auto get_static_enum_name(){
@@ -228,4 +215,3 @@ public:
         run_(params, required_features);
     }
 };
-

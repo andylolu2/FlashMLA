@@ -74,34 +74,9 @@ ext_modules.append(
             "csrc/sm90/decode/dense/instantiations/fp16.cu",
             "csrc/sm90/decode/dense/instantiations/bf16.cu",
 
-            # sm90 sparse decode
-            "csrc/sm90/decode/sparse_fp8/instantiations/model1_persistent_h64.cu",
-            "csrc/sm90/decode/sparse_fp8/instantiations/model1_persistent_h128.cu",
-            "csrc/sm90/decode/sparse_fp8/instantiations/v32_persistent_h64.cu",
-            "csrc/sm90/decode/sparse_fp8/instantiations/v32_persistent_h128.cu",
-
-            # sm90 sparse prefill
-            "csrc/sm90/prefill/sparse/fwd.cu",
-            "csrc/sm90/prefill/sparse/instantiations/phase1_k512.cu",
-            "csrc/sm90/prefill/sparse/instantiations/phase1_k512_topklen.cu",
-            "csrc/sm90/prefill/sparse/instantiations/phase1_k576.cu",
-            "csrc/sm90/prefill/sparse/instantiations/phase1_k576_topklen.cu",
-
             # sm100 dense prefill & backward
             "csrc/sm100/prefill/dense/fmha_cutlass_fwd_sm100.cu",
             "csrc/sm100/prefill/dense/fmha_cutlass_bwd_sm100.cu",
-
-            # sm100 sparse prefill
-            "csrc/sm100/prefill/sparse/fwd/head64/instantiations/phase1_k512.cu",
-            "csrc/sm100/prefill/sparse/fwd/head64/instantiations/phase1_k576.cu",
-            "csrc/sm100/prefill/sparse/fwd/head128/instantiations/phase1_k512.cu",
-            "csrc/sm100/prefill/sparse/fwd/head128/instantiations/phase1_k576.cu",
-            "csrc/sm100/prefill/sparse/fwd_for_small_topk/head128/instantiations/phase1_prefill_k512.cu",
-
-            # sm100 sparse decode
-            "csrc/sm100/decode/head64/instantiations/v32.cu",
-            "csrc/sm100/decode/head64/instantiations/model1.cu",
-            "csrc/sm100/prefill/sparse/fwd_for_small_topk/head128/instantiations/phase1_decode_k512.cu",
         ],
         extra_compile_args={
             "cxx": cxx_args + get_features_args(),

@@ -1,11 +1,6 @@
 #pragma once
 
-#include "cutlass/bfloat16.h"
-
-enum class ModelType {
-    V32,
-    MODEL1
-};
+#include <cuda_runtime_api.h>
 
 struct __align__(4*8) DecodingSchedMeta {
     int begin_req_idx, end_req_idx;     // Both inclusive
@@ -60,48 +55,6 @@ struct DenseAttnDecodeParams { // TODO Change name to DenseAttnDecodeParams
     cudaStream_t stream;
 };
 
-struct SparseAttnDecodeParams {
-    int b, s_q;
-    int h_q, h_kv;
-    int d_qk, d_v;
-    float sm_scale, sm_scale_div_log2;
-    int num_blocks, page_block_size, topk;
-    ModelType model_type;
-
-    cutlass::bfloat16_t* __restrict__ q;   // [b, s_q, h_q, d_qk]
-    cutlass::bfloat16_t* __restrict__ kv;  // [num_blocks, page_block_size, d_qk]
-    int* __restrict__ indices;   // [b, s_q, topk]
-    int* __restrict__ topk_length;  // [b], may be nullptr
-    float* __restrict__ attn_sink;  // [h_q], may be nullptr
-
-    float* __restrict__ lse;    // [b, s_q, h_q]
-    cutlass::bfloat16_t* __restrict__ out;   // [b, s_q, h_q, d_v]
-    
-    int extra_num_blocks, extra_page_block_size, extra_topk;
-    cutlass::bfloat16_t* __restrict__ extra_kv;  // [extra_num_blocks, extra_page_block_size, d_qk]
-    int* __restrict__ extra_indices;   // [b, s_q, extra_topk]
-    int* __restrict__ extra_topk_length;  // [b], may be nullptr
-    
-    int stride_q_b, stride_q_s_q, stride_q_h_q;
-    int stride_kv_block, stride_kv_row;
-    int stride_indices_b, stride_indices_s_q;
-    int stride_lse_b, stride_lse_s_q;
-    int stride_o_b, stride_o_s_q, stride_o_h_q;
-    int stride_extra_kv_block, stride_extra_kv_row;
-    int stride_extra_indices_b, stride_extra_indices_s_q;
-    
-    cudaStream_t stream;
-    
-    // SplitKV-related parameters
-    float* __restrict__ lse_accum;  // [num_splits, s_q, h_q]
-    float* __restrict__ o_accum;    // [num_splits, s_q, h_q, d_v]
-    int stride_lse_accum_split, stride_lse_accum_s_q;
-    int stride_o_accum_split, stride_o_accum_s_q, stride_o_accum_h_q;
-    DecodingSchedMeta* __restrict__ tile_scheduler_metadata_ptr; // [num_sm_parts, ], contiguous
-    int* __restrict__ num_splits_ptr; // [batch_size+1, ], contiguous
-    int num_sm_parts;
-};
-
 struct CombineParams {
     int b, s_q, h_q, d_v;
 
@@ -130,9 +83,6 @@ struct GetDecodeSchedMetaParams {
     int block_size_n;
     int fixed_overhead_num_blocks;
 
-    int topk, extra_topk;   // -1 if sparse attention (or extra topk) is disabled
-    int *__restrict__ topk_length, *__restrict__ extra_topk_length;
-
     int *__restrict__ seqlens_k_ptr;    // Only necessary for dense attention
 
     DecodingSchedMeta *__restrict__ tile_scheduler_metadata_ptr;
@@ -141,40 +91,3 @@ struct GetDecodeSchedMetaParams {
 
     cudaStream_t stream;
 };
-
-struct SparseAttnFwdParams {
-    int s_q, s_kv, h_q, h_kv, d_qk, d_v, topk;
-    float sm_scale, sm_scale_div_log2;
-
-    // Input tensors
-    cutlass::bfloat16_t* __restrict__ q;    // [s_q, h_q, d_qk]
-    cutlass::bfloat16_t* __restrict__ kv;   // [s_kv, h_kv, d_qk]
-    int* __restrict__ indices;   // [s_q, h_kv, topk]
-    float* __restrict__ attn_sink;   // [h_q], may be nullptr
-    int* __restrict__ topk_length;    // [s_q], may be nullptr
-
-    // Strides
-    int stride_q_s_q; int stride_q_h_q;
-    int stride_kv_s_kv; int stride_kv_h_kv;
-    int stride_indices_s_q; int stride_indices_h_kv;
-
-    // Output tensors
-    cutlass::bfloat16_t* __restrict__ out;   // [s_q, h_q, d_v]
-    float* __restrict__ max_logits; // [s_q, h_q]
-    float* __restrict__ lse; // [s_q, h_q]
-
-    int num_sm;
-    cudaStream_t stream;
-};
-
-// We have some kernels that implement both prefill and decode modes in a single kernel (with different template instantiations). The following enum helps to distinguish the modes.
-enum class SparseAttnFwdMode {
-    Prefill,            // Normal prefill mode
-    DecodeWithSplitKV,  // To trigger decoding mode for kernels that support both prefill and decode
-};
-
-template<SparseAttnFwdMode FWD_MODE>
-inline constexpr bool is_decode_v = std::bool_constant<FWD_MODE == SparseAttnFwdMode::DecodeWithSplitKV>::value;
-
-template<SparseAttnFwdMode FWD_MODE>
-using SparseFwdArgT = std::conditional_t<is_decode_v<FWD_MODE>, SparseAttnDecodeParams, SparseAttnFwdParams>;

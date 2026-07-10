@@ -13,7 +13,7 @@
 static std::tuple<at::Tensor, at::Tensor, std::optional<at::Tensor>, std::optional<at::Tensor>>
 dense_attn_decode_interface(
     at::Tensor &q,                               // batch_size x seqlen_q x num_heads x head_size
-    const at::Tensor &kcache,                    // num_blocks x page_block_size x num_heads_k x head_size (when is_fp8 is False) or num_blocks x num_heads_k x (page_block_size*656) (when is_fp8 is True)
+    const at::Tensor &kcache,                    // num_blocks x page_block_size x num_heads_k x head_size
     const int head_size_v,
     const at::Tensor &seqlens_k,                 // batch_size
     const at::Tensor &block_table,               // batch_size x max_num_blocks_per_seq
@@ -102,8 +102,6 @@ dense_attn_decode_interface(
             batch_size, seqlen_q_ori,
             64,
             5,
-            -1, -1,
-            nullptr, nullptr,
             seqlens_k.data_ptr<int>(),
             (DecodingSchedMeta*)tile_scheduler_metadata->data_ptr(),
             num_splits->data_ptr<int>(),
