@@ -27,79 +27,79 @@ Our solution involves an additional mathematical transformation beyond FlashAtte
 0. Maintain a running max $m$ (initialized to $-\infty$, shared between the two warpgroups) and output matrices $\vec o_L, \vec o_R$ (initialized to 0).
 1. [0] Compute
 
-   $$
-   \vec p_0 = \vec q K_0^\intercal / qk_{scale}
-   $$
+$$
+\vec p_0 = \vec q K_0^\intercal / qk_{scale}
+$$
 
 2. [1] Compute
 
-   $$
-   \vec p_1 = \vec q K_1^\intercal / qk_{scale}
-   $$
+$$
+\vec p_1 = \vec q K_1^\intercal / qk_{scale}
+$$
 
 3. [0] Compute and update $m$
 
-   $$
-   \begin{aligned}
-   mp_0 &= \max(\vec p_0), \\
-   m_{new_0} &= \max(m, mp_0), \\
-   scale_0 &= \exp(m_{new_0} - m), \\
-   m &\gets m_{new_0}.
-   \end{aligned}
-   $$
+$$
+\begin{aligned}
+mp_0 &= \max(\vec p_0), \\
+m_{new_0} &= \max(m, mp_0), \\
+scale_0 &= \exp(m_{new_0} - m), \\
+m &\gets m_{new_0}.
+\end{aligned}
+$$
 
 4. [0] Perform softmax on $\vec p_0$
 
-   $$
-   \vec p_0 \gets \exp(\vec p_0 - m_{new_0})
-   $$
+$$
+\vec p_0 \gets \exp(\vec p_0 - m_{new_0})
+$$
 
 5. [0] Update $\vec o_L$
 
-   $$
-   \vec o_L \gets \vec o_L \cdot scale_0 + \vec p_0 V_{0L}
-   $$
+$$
+\vec o_L \gets \vec o_L \cdot scale_0 + \vec p_0 V_{0L}
+$$
 
 6. [1] Compute and update $m$
 
-   $$
-   \begin{aligned}
-   mp_1 &= \max(\vec p_1), \\
-   m_{new_1} &= \max(m, mp_1), \\
-   scale_1 &= \exp(m_{new_1} - m), \\
-   m &\gets m_{new_1}.
-   \end{aligned}
-   $$
+$$
+\begin{aligned}
+mp_1 &= \max(\vec p_1), \\
+m_{new_1} &= \max(m, mp_1), \\
+scale_1 &= \exp(m_{new_1} - m), \\
+m &\gets m_{new_1}.
+\end{aligned}
+$$
 
 7. [1] Perform softmax on $\vec p_1$
 
-   $$
-   \vec p_1 \gets \exp(\vec p_1 - m_{new_1})
-   $$
+$$
+\vec p_1 \gets \exp(\vec p_1 - m_{new_1})
+$$
 
 8. [1] Update $\vec o_R$
 
-   $$
-   \vec o_R \gets \vec o_R \cdot (scale_0 \cdot scale_1) + \vec p_1 V_{1R}
-   $$
+$$
+\vec o_R \gets \vec o_R \cdot (scale_0 \cdot scale_1) + \vec p_1 V_{1R}
+$$
 
 9. [0] Update $\vec p_0$
 
-   $$
-   \vec p_0 \gets \vec p_0 \cdot scale_1
-   $$
+$$
+\vec p_0 \gets \vec p_0 \cdot scale_1
+$$
 
 10. [1] Update $\vec o_R$
 
-    $$
-    \vec o_R \gets \vec o_R + \vec p_0 V_{0R}
-    $$
+$$
+\vec o_R \gets \vec o_R + \vec p_0 V_{0R}
+$$
 
 11. [0] Update $\vec o_L$
 
-    $$
-    \vec o_L \gets \vec o_L \cdot scale_1 + \vec p_1 V_{1L}
-    $$
+$$
+\vec o_L \gets \vec o_L \cdot scale_1 + \vec p_1 V_{1L}
+$$
 
 Note: We assume one q head for simplicity, so $\vec q$ and $\vec o$ are vectors. Bracketed numbers indicate the warpgroup performing the operation. Assume $\vec o_L$ resides in warpgroup 0's register and $\vec o_R$ resides in warpgroup 1's register.
 
