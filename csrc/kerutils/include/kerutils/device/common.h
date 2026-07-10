@@ -39,14 +39,10 @@ using transac_bar_t = cutlass::arch::ClusterTransactionBarrier;
 
 }
 
-#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 800))
-#define KERUTILS_ENABLE_SM80
-#elif (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))
-static_assert(false, "kerutils doesn't support SM architectures below SM80");
-#endif
-
 #if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 900))
 #define KERUTILS_ENABLE_SM90
+#elif (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 900))
+static_assert(false, "kerutils doesn't support SM architectures below SM90");
 #endif
 
 #if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 900 && __CUDA_ARCH__ < 1000))
@@ -54,7 +50,6 @@ static_assert(false, "kerutils doesn't support SM architectures below SM80");
 #endif
 
 #if (defined(__CLION_IDE__) || defined(__VSCODE_IDE__))
-#define KERUTILS_ENABLE_SM80
 #define KERUTILS_ENABLE_SM90
 #define KERUTILS_ENABLE_SM90A
 #endif
